@@ -2,8 +2,9 @@
 Utility functions for hear-kit
 """
 import numpy as np
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 from typing import Tuple
+import opensmile
 import torch
 import torch.nn.functional as F
 from torch import Tensor
@@ -126,13 +127,23 @@ def generate_byols_embeddings(
         2D Array of embeddings for each audio of size (N, M). N = number of samples, M = embedding dimension
     """
     embeddings = []
-    model.eval()
-    for param in model.parameters():
-        param.requires_grad = False
-    with torch.no_grad():
-        for audio in tqdm(audios, desc=f'Generating Embeddings...', total=len(audios)):
-            lms = normalizer((to_melspec(audio.unsqueeze(0)) + torch.finfo(torch.float).eps).log()).unsqueeze(0)
-            embedding = model(lms.to(audio.device))
-            embeddings.append(embedding)
+
+    feature_extractor = opensmile.Smile(feature_set=opensmile.FeatureSet.ComParE_2016, feature_level=opensmile.FeatureLevel.Functionals)
+    for audio in tqdm(audios, desc=f'Generating Embeddings...', total=len(audios)):
+        embedding = feature_extractor.process_signal(audio.cpu().numpy(), 16000).values.flatten()
+        embedding = np.expand_dims(embedding, axis=0)
+        embeddings.append(torch.from_numpy(embedding))
+
     embeddings = torch.cat(embeddings, dim=0)
     return embeddings
+    # embeddings = []
+    # model.eval()
+    # for param in model.parameters():
+    #     param.requires_grad = False
+    # with torch.no_grad():
+    #     for audio in tqdm(audios, desc=f'Generating Embeddings...', total=len(audios)):
+    #         lms = normalizer((to_melspec(audio.unsqueeze(0)) + torch.finfo(torch.float).eps).log()).unsqueeze(0)
+    #         embedding = model(lms.to(audio.device))
+    #         embeddings.append(embedding)
+    # embeddings = torch.cat(embeddings, dim=0)
+    # return embeddings
