@@ -68,7 +68,7 @@ def get_model(model_name: str="", cfg: EasyDict={}) -> torch.nn.Module:
     return model
 
 
-def load_model(model_file_path: str = "", model_name: str = "default", cfg_path: str = "./serab-byols/serab_byols/config.yaml") -> torch.nn.Module:
+def load_model(model_file_path: str = "", model_name: str = "cvt", cfg_path: str = "./serab-byols/serab_byols/config.yaml") -> torch.nn.Module:
     """Load pre-trained DL models.
 
     Parameters
