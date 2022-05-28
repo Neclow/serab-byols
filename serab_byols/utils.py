@@ -140,10 +140,6 @@ def generate_byols_embeddings(
     feature_extractor = opensmile.Smile(feature_set=opensmile.FeatureSet.ComParE_2016, feature_level=opensmile.FeatureLevel.Functionals)
     for audio in tqdm(audios, desc=f'Generating Embeddings...', total=len(audios)):
         embedding = feature_extractor.process_signal(audio.cpu().numpy(), 16000).values.flatten()
-        embedding = (embedding - mu)/sigma
-
-        assert len(embedding.shape) == 2 and embedding.shape[0] == 1
-
         embeddings.append(torch.from_numpy(embedding))
 
     embeddings = torch.cat(embeddings, dim=0)
