@@ -11,7 +11,6 @@ import torch
 import torch.nn.functional as F
 
 from torch import Tensor
-from tqdm.autonotebook import tqdm
 
 
 def compute_scene_stats(audios, to_melspec):
@@ -131,23 +130,14 @@ def generate_byols_embeddings(
     embeddings: Tensor
         2D Array of embeddings for each audio of size (N, M). N = number of samples, M = embedding dimension
     """
-    # mu, sigma = np.split(pd.read_csv('serab-byols/tfds_crema_d-1.0.0-full.fold00.stats.csv').values.T, 2)
-
-    # sigma[sigma == 0.0] = 1.0 # https://github.com/scikit-learn/scikit-learn/blob/7389dbac82d362f296dc2746f10e43ffa1615660/sklearn/preprocessing/data.py#L70
-
     embeddings = []
 
     feature_extractor = opensmile.Smile(feature_set=opensmile.FeatureSet.ComParE_2016, feature_level=opensmile.FeatureLevel.Functionals)
-    for audio in tqdm(audios, desc=f'Generating Embeddings...', total=len(audios)):
+    for audio in audios:
         embedding = feature_extractor.process_signal(audio.cpu().numpy(), 16000).values.flatten()
         embedding = np.expand_dims(embedding, axis=0)
         embeddings.append(torch.from_numpy(embedding))
 
     embeddings = torch.cat(embeddings, dim=0)
 
-    # Normalize the embedding
-    mu, sigma = embeddings.mean(0), embeddings.std(0)
-
-    sigma[sigma == 0.0] = 1.0 # trick from https://github.com/scikit-learn/scikit-learn/blob/7389dbac82d362f296dc2746f10e43ffa1615660/sklearn/preprocessing/data.py#L70
-
-    return embeddings.sub(mu).div(sigma)
+    return embeddings
