@@ -29,6 +29,7 @@ def compute_scene_stats(audios, to_melspec):
     stats = [mean.item(), std.item()]
     return stats
 
+
 def compute_timestamp_stats(melspec):
     """Compute statistics of the mel-spectrograms.
 
@@ -47,6 +48,7 @@ def compute_timestamp_stats(melspec):
 
     stats = [mean.item(), std.item()]
     return stats
+
 
 def frame_audio(
     audio: Tensor, frame_size: int, hop_size: float, sample_rate: int
@@ -71,8 +73,10 @@ def frame_audio(
     # Zero pad the beginning and the end of the incoming audio with half a frame number
     # of samples. This centers the audio in the middle of each frame with respect to
     # the timestamps.
-    audio = F.pad(audio, (frame_size // 2, frame_size - frame_size // 2))
+    audio = F.pad(audio, (int(frame_size // 2), int(frame_size - frame_size // 2)))
     num_padded_samples = audio.shape[1]
+
+    frame_size = int(frame_size)
 
     frame_step = hop_size / 1000.0 * sample_rate
     frame_number = 0
@@ -98,6 +102,7 @@ def frame_audio(
     timestamps_tensor = timestamps_tensor.expand(audio.shape[0], -1)
 
     return torch.stack(frames, dim=1), timestamps_tensor
+
 
 def generate_byols_embeddings(
     model,
